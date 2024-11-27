@@ -1,5 +1,6 @@
 using EntityPoste.Domain;
 using EntityPoste.SeedWork;
+using Microsoft.EntityFrameworkCore;
 
 namespace EntityPoste.Repository;
 
@@ -7,11 +8,7 @@ public class UserRepository(AppDbContext ctx) : IUserRepository, IAsyncDisposabl
 {
     public void Insert(string name, string email)
     {
-        ctx.Users.Add(new User
-        {
-            Name = name,
-            Email = email
-        });
+        ctx.Users.Add(new User(email, name));
         ctx.SaveChanges();
     }
 
@@ -19,7 +16,7 @@ public class UserRepository(AppDbContext ctx) : IUserRepository, IAsyncDisposabl
     {
         var user = ctx.Users.Find(id);
         if (user == null) return;
-        user.Email = email;
+        user.UpdateEmail(email); 
         ctx.SaveChanges();
     }
 
@@ -38,13 +35,13 @@ public class UserRepository(AppDbContext ctx) : IUserRepository, IAsyncDisposabl
 
     public IEnumerable<User> GetUsersByEmail(string email)
     {
-        return ctx.Users.Where(u => u.Email.Contains(email)).ToList();
+        return ctx.Users.Where(u => u.Email.Contains(email)).Include(u=>u.Addresses);
     }
-
     public IEnumerable<string> GetProviders()
     {
        return ctx.Users.Select(u => u.Email.Substring(u.Email.IndexOf("@")+1)).Distinct();
     }
+    
 
     public void Dispose()
     {

@@ -1,3 +1,4 @@
+using EntityPoste.Domain;
 using EntityPoste.SeedWork;
 using Microsoft.Data.SqlClient;
 using static System.Console;
@@ -78,18 +79,17 @@ public class UnitOfWork(IUserRepository userRepository) : IDisposable
         if (string.IsNullOrEmpty(userName) || string.IsNullOrEmpty(email))
         {
             WriteLine("Please enter a valid user name or email");
-            return; 
+            return;
         }
-        
-        userRepository.Insert(userName,email);
-        
+
+        userRepository.Insert(userName, email);
     }
 
     private void Update()
     {
         Write("Insert the Id to Update: ");
         var id = ReadLine();
-        
+
         Write("Insert the Email to Update: ");
         var email = ReadLine();
 
@@ -98,7 +98,6 @@ public class UnitOfWork(IUserRepository userRepository) : IDisposable
         {
             userRepository.Update(userId, email);
         }
-        
     }
 
     private void Delete()
@@ -128,28 +127,40 @@ public class UnitOfWork(IUserRepository userRepository) : IDisposable
             WriteLine("No Providers Found");
             return;
         }
-        for(var i = 0; i < providers.Count; i++)
+
+        for (var i = 0; i < providers.Count; i++)
         {
             WriteLine($"{i} - provider: {providers[i]}");
         }
-        
+
         Write("Select Provider: ");
         var selectedProvider = Console.ReadLine();
-        
+
         if (!int.TryParse(selectedProvider, out var providerIndex)) return;
-        var users=  userRepository.GetUsersByEmail(providers[providerIndex]).ToList();
-            
+        var users = userRepository.GetUsersByEmail(providers[providerIndex]).ToList();
+
         if (users.Count == 0)
         {
             WriteLine("No users found");
             return;
-            
         }
+
         foreach (var user in users)
         {
-            WriteLine(user.ToString());
+            WriteLine($"user: {user}");
+            PrintAddresses(user.Addresses);
+            WriteLine("------------");
         }
     }
+
+    private void PrintAddresses(IEnumerable<Address> addresses)
+    {
+        foreach (var address in addresses)
+        {
+            WriteLine(address);
+        }
+    }
+
 
     public void Dispose()
     {
